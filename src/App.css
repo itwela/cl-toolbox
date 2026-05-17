@@ -155,6 +155,9 @@ html, body, #root {
   padding: 12px 14px 10px;
   position: relative;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .search-wrap::before {
@@ -192,6 +195,100 @@ html, body, #root {
 
 .search:focus {
   border-color: var(--accent);
+}
+
+/* ── Search row view toggle ───────────────────── */
+
+.view-toggle-btn {
+  flex-shrink: 0;
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 2px;
+  padding: 4px 10px;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  margin-right: 2px;
+}
+
+.view-toggle-btn:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.view-toggle-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+/* ── Category grid view ───────────────────────── */
+
+.cat-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  padding: 10px 14px 14px;
+  overflow-y: auto;
+  align-content: start;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.cat-tile {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 2px;
+  padding: 14px 12px 12px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.cat-tile:hover {
+  background: var(--surface);
+  border-color: var(--text);
+}
+
+.cat-tile.active {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.cat-tile-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--text);
+}
+
+.cat-tile.active .cat-tile-name {
+  color: var(--accent);
+}
+
+.cat-tile-count {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--muted);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.cat-tile.active .cat-tile-count {
+  color: var(--accent);
 }
 
 /* ── Category filters ─────────────────────────── */

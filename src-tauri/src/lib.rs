@@ -5,8 +5,13 @@ use notify::{Watcher, RecursiveMode, RecommendedWatcher, Event};
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_store::StoreExt;
 
-const DEFAULT_COMMANDS_PATH: &str =
-    "/Users/itwelaibomu/Desktop/Itwela Obsidian/My Commands.md";
+fn default_commands_path() -> String {
+    if cfg!(target_os = "windows") {
+        r"C:\Users\itwel\Documents\Itwela-Obsidian\My Commands.md".to_string()
+    } else {
+        "/Users/itwelaibomu/Desktop/Itwela Obsidian/My Commands.md".to_string()
+    }
+}
 const STORE_FILE: &str = "config.json";
 const STORE_KEY_PATH: &str = "commands_path";
 const STORE_KEY_THEME: &str = "theme";
@@ -24,7 +29,7 @@ fn get_commands_path(app: AppHandle) -> String {
     store
         .get(STORE_KEY_PATH)
         .and_then(|v: serde_json::Value| v.as_str().map(|s| s.to_string()))
-        .unwrap_or_else(|| DEFAULT_COMMANDS_PATH.to_string())
+        .unwrap_or_else(|| default_commands_path())
 }
 
 #[tauri::command]

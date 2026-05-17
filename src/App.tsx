@@ -19,16 +19,21 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [view, setView] = useState<"list" | "categories">("list");
   const searchRef = useRef<HTMLInputElement>(null);
   const appWindow = getCurrentWindow();
 
-  const loadCommands = useCallback(async (path: string) => {
+  const loadCommands = useCallback(async (path: string, retry = true) => {
     try {
       const content = await invoke<string>("read_commands_file", { path });
       setCommands(parseCommands(content));
       setError(null);
     } catch (e) {
-      setError(String(e));
+      if (retry) {
+        setTimeout(() => loadCommands(path, false), 1000);
+      } else {
+        setError(String(e));
+      }
     }
   }, []);
 
@@ -129,6 +134,7 @@ export default function App() {
           >Win</button>
         </div>
         <div className="titlebar-actions">
+          <button className="icon-btn" onClick={() => loadCommands(filePath)} title="Reload file">↺</button>
           <button className="icon-btn" onClick={() => setShowSettings(!showSettings)} title="Settings">Config</button>
           <button className="icon-btn" onClick={() => appWindow.minimize()} title="Minimize">Hide</button>
         </div>
@@ -185,53 +191,83 @@ export default function App() {
               onChange={(e) => setQuery(e.target.value)}
               autoFocus
             />
-          </div>
-
-          <div className="filters">
             <button
-              className={`pill ${activeCategory === null ? "active" : ""}`}
-              onClick={() => setActiveCategory(null)}
-            >All</button>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                className={`pill ${activeCategory === cat ? "active" : ""}`}
-                onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
-              >{cat}</button>
-            ))}
+              className={`view-toggle-btn ${view === "categories" ? "active" : ""}`}
+              onClick={() => setView(view === "list" ? "categories" : "list")}
+              title="Browse by category"
+            >Browse</button>
           </div>
 
-          {error ? (
-            <div className="error">
-              <p>Could not read file:</p>
-              <code>{error}</code>
-              <button onClick={() => setShowSettings(true)}>Change path</button>
+          {view === "categories" ? (
+            <div className="cat-grid">
+              <button
+                className={`cat-tile ${activeCategory === null ? "active" : ""}`}
+                onClick={() => { setActiveCategory(null); setView("list"); }}
+              >
+                <span className="cat-tile-name">All</span>
+                <span className="cat-tile-count">{commands.length}</span>
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  className={`cat-tile ${activeCategory === cat ? "active" : ""}`}
+                  onClick={() => { setActiveCategory(cat); setView("list"); }}
+                >
+                  <span className="cat-tile-name">{cat}</span>
+                  <span className="cat-tile-count">{commands.filter(c => c.category === cat).length}</span>
+                </button>
+              ))}
             </div>
           ) : (
-            <div className="list">
-              {Object.keys(grouped).length === 0 ? (
-                <p className="empty">No commands found.</p>
+            <>
+              <div className="filters">
+                <button
+                  className={`pill ${activeCategory === null ? "active" : ""}`}
+                  onClick={() => setActiveCategory(null)}
+                >All</button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    className={`pill ${activeCategory === cat ? "active" : ""}`}
+                    onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+                  >{cat}</button>
+                ))}
+              </div>
+
+              {error ? (
+                <div className="error">
+                  <p>Could not read file:</p>
+                  <code>{error}</code>
+                  <button onClick={() => loadCommands(filePath)}>Retry</button>
+                  <button onClick={() => setShowSettings(true)}>Change path</button>
+                </div>
               ) : (
-                Object.entries(grouped).map(([cat, cmds]) => (
-                  <div key={cat} className="category">
-                    <p className="category-label">{cat}</p>
-                    {cmds.map((cmd) => (
-                      <button
-                        key={cmd.id}
-                        className={`command-row ${copied === cmd.id ? "copied" : ""}`}
-                        onClick={() => handleCopy(cmd)}
-                      >
-                        <div className="cmd-body">
-                          <span className="cmd-name">{resolveCommand(cmd)}</span>
-                          {cmd.description && <span className="cmd-desc">{cmd.description}</span>}
-                        </div>
-                        <span className="cmd-copy">{copied === cmd.id ? "OK ✓" : "copy"}</span>
-                      </button>
-                    ))}
-                  </div>
-                ))
+                <div className="list">
+                  {Object.keys(grouped).length === 0 ? (
+                    <p className="empty">No commands found.</p>
+                  ) : (
+                    Object.entries(grouped).map(([cat, cmds]) => (
+                      <div key={cat} className="category">
+                        <p className="category-label">{cat}</p>
+                        {cmds.map((cmd) => (
+                          <button
+                            key={cmd.id}
+                            className={`command-row ${copied === cmd.id ? "copied" : ""}`}
+                            onClick={() => handleCopy(cmd)}
+                          >
+                            <div className="cmd-body">
+                              <span className="cmd-name">{resolveCommand(cmd)}</span>
+                              {cmd.description && <span className="cmd-desc">{cmd.description}</span>}
+                            </div>
+                            <span className="cmd-copy">{copied === cmd.id ? "OK ✓" : "copy"}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
         </>
       )}
