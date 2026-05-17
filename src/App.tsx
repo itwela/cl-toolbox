@@ -135,7 +135,7 @@ export default function App() {
         </div>
         <div className="titlebar-actions">
           <button className="icon-btn" onClick={() => loadCommands(filePath)} title="Reload file">↺</button>
-          <button className="icon-btn" onClick={() => setShowSettings(!showSettings)} title="Settings">Config</button>
+          <button className="icon-btn" onClick={() => setShowSettings(!showSettings)} title="Settings">{showSettings ? "Home" : "Settings"}</button>
           <button className="icon-btn" onClick={() => appWindow.minimize()} title="Minimize">Hide</button>
         </div>
       </div>

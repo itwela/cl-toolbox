@@ -228,6 +228,10 @@ html, body, #root {
   color: var(--bg);
 }
 
+.app.dark .view-toggle-btn.active {
+  color: #ffffff;
+}
+
 /* ── Category grid view ───────────────────────── */
 
 .cat-grid {
@@ -377,8 +381,12 @@ html, body, #root {
 .category-label::after {
   content: '';
   flex: 1;
-  height: 1px;
-  background: var(--border);
+  height: 1.5px;
+  background: #000000;
+}
+
+.app.dark .category-label::after {
+  background: #ffffff;
 }
 
 .command-row {
@@ -473,6 +481,10 @@ html, body, #root {
 }
 
 /* ── Dark mode button overrides ───────────────── */
+
+.app.dark .done-btn {
+  color: #ffffff;
+}
 
 .app.dark .toggle-btn {
   color: #a09080;
