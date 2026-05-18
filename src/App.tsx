@@ -6,6 +6,9 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { parseCommands } from "./parseCommands";
 import { Command } from "./types";
+import ToolboxButton from "./ToolboxButton";
+import iconDark from "./assets/icon-dark.png";
+import iconLight from "./assets/icon-light.png";
 import "./App.css";
 
 export default function App() {
@@ -20,6 +23,8 @@ export default function App() {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [view, setView] = useState<"list" | "categories">("list");
+  const [promptCopied, setPromptCopied] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const appWindow = getCurrentWindow();
 
@@ -122,7 +127,10 @@ export default function App() {
         if ((e.target as HTMLElement).closest("button")) return;
         appWindow.startDragging();
       }}>
-        <span className="app-title">CL Toolbox</span>
+        {showSettings
+          ? <span className="app-title">CL Toolbox</span>
+          : <img src={theme === "dark" ? iconDark : iconLight} className="app-logo" alt="CL Toolbox" />
+        }
         <div className="platform-toggle">
           <button
             className={`toggle-btn ${platform === "mac" ? "active" : ""}`}
@@ -153,7 +161,7 @@ export default function App() {
               }}
               spellCheck={false}
             />
-            <button className="browse-btn" onClick={handleBrowse}>Browse</button>
+            <ToolboxButton label="Browse" onClick={handleBrowse} />
           </div>
           <p className="settings-label">Appearance:</p>
           <div className="platform-toggle theme-toggle">
@@ -167,6 +175,23 @@ export default function App() {
             >Light</button>
           </div>
           <button className="done-btn" onClick={() => setShowSettings(false)}>Done</button>
+          <button className="reset-btn" onClick={() => {
+            if (confirmReset) {
+              invoke("set_commands_path", { path: "" });
+              setFilePath("");
+              setCommands([]);
+              setShowSettings(false);
+              setConfirmReset(false);
+            } else {
+              setConfirmReset(true);
+              setTimeout(() => setConfirmReset(false), 3000);
+            }
+          }}>{confirmReset ? "Are you sure?" : "Reset file path"}</button>
+          <div className="settings-footer">
+            <span>An Itwela &amp; Caveman Creative product</span>
+            <a href="https://cavemancreativehq.com" target="_blank" rel="noreferrer">cavemancreativehq.com</a>
+            <span>v1.0.0</span>
+          </div>
         </div>
       ) : !hasInitialized ? null : !filePath ? (
         <div className="setup">
@@ -175,7 +200,30 @@ export default function App() {
             CL Toolbox reads your commands from a <code>.md</code> file you control —
             one place for every shortcut, snippet, and CLI command you use.
           </p>
-          <button className="setup-browse" onClick={handleBrowse}>Browse for file</button>
+          <ToolboxButton label="Browse for file" onClick={handleBrowse} />
+          <div className="setup-divider"><span>or</span></div>
+          <div className="setup-generate">
+            <p className="setup-generate-label">Don't have a file? Let Claude build one for you.</p>
+            <ToolboxButton label={promptCopied ? "Copied ✓" : "Copy Claude Prompt"} active={promptCopied} onClick={() => {
+              const prompt = `I'm setting up CL Toolbox, a command palette app that reads shortcuts and CLI commands from a Markdown file. I need you to build my personal commands file.
+
+First, ask me a few questions to understand my workflow — things like: what OS I'm on, what languages and frameworks I use, what tools I run from the terminal, what apps I use daily (editors, deployment platforms, etc).
+
+Then, based on my answers, generate a properly formatted My Commands.md file with the most useful commands for my specific setup. Use this exact format:
+
+- Categories use a single #
+- Command names use ##
+- Description goes on the line below the command name
+- The actual command goes in a fenced code block
+- For platform-specific commands use mac: or win: prefix inside the code block
+
+After generating the file, save it to my Desktop as My Commands.md and tell me the exact full file path at the very end of your response so I can paste it into CL Toolbox.`;
+              writeText(prompt);
+              setPromptCopied(true);
+              setTimeout(() => setPromptCopied(false), 2500);
+            }} />
+            <p className="setup-generate-hint">Paste into Claude Code → Claude builds your file → paste the path back here.</p>
+          </div>
           <button className="setup-manual" onClick={() => setShowSettings(true)}>
             or enter a path manually
           </button>
@@ -191,11 +239,7 @@ export default function App() {
               onChange={(e) => setQuery(e.target.value)}
               autoFocus
             />
-            <button
-              className={`view-toggle-btn ${view === "categories" ? "active" : ""}`}
-              onClick={() => setView(view === "list" ? "categories" : "list")}
-              title="Browse by category"
-            >Browse</button>
+            <ToolboxButton label="Browse" onClick={() => setView(view === "list" ? "categories" : "list")} active={view === "categories"} title="Browse by category" />
           </div>
 
           {view === "categories" ? (

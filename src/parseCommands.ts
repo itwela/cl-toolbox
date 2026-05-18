@@ -54,8 +54,16 @@ export function parseCommands(markdown: string): Command[] {
     }
 
     if (inCode) {
-      codeLines = codeLines ?? [];
-      codeLines.push(line);
+      const macMatch = line.match(/^mac:\s*(.+)/i);
+      const winMatch = line.match(/^win:\s*(.+)/i);
+      if (macMatch) {
+        currentCommand.mac = macMatch[1].trim();
+      } else if (winMatch) {
+        currentCommand.win = winMatch[1].trim();
+      } else {
+        codeLines = codeLines ?? [];
+        codeLines.push(line);
+      }
       continue;
     }
 

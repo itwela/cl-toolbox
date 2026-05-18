@@ -6,11 +6,7 @@ use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_store::StoreExt;
 
 fn default_commands_path() -> String {
-    if cfg!(target_os = "windows") {
-        r"C:\Users\itwel\Documents\Itwela-Obsidian\My Commands.md".to_string()
-    } else {
-        "/Users/itwelaibomu/Desktop/Itwela Obsidian/My Commands.md".to_string()
-    }
+    String::new()
 }
 const STORE_FILE: &str = "config.json";
 const STORE_KEY_PATH: &str = "commands_path";
